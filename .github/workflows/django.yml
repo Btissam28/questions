@@ -9,26 +9,35 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"]  # Doit correspondre à votre Pipfile
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.9"
         
-    - name: Install Pipenv
-      run: pip install pipenv
-      
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
-        pipenv --python ${{ matrix.python-version }}
+        python -m pip install --upgrade pip
+        pip install pipenv
         pipenv install --dev
-      
-    - name: Run Tests
+        pipenv run pip install -e .
+        
+    - name: Run tests
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/github_actions
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
         pipenv run python manage.py test
