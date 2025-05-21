@@ -1,0 +1,15 @@
+{% extends "quora/base.html" %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+    <h1>Notifications</h1>
+    <ul class="list-group">
+        {% for answer in user_answers %}
+            <li class="list-group-item">
+                Your question "{{ answer.question.title }}" received a new answer by {{ answer.user.username }}:
+                <p>{{ answer.content }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
